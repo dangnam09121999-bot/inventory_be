@@ -24,15 +24,18 @@ import { InventoryDetail } from './inventory/inventory-detail.entity';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        const isProduction =
+          configService.get<string>('NODE_ENV') === 'production';
         return {
           type: 'postgres',
-          host: configService.get<string>('DB_HOST', 'localhost'),
-          port: Number(configService.get<string>('DB_PORT', '5432')),
-          username: configService.get<string>('DB_USERNAME', 'postgres'),
-          password: configService.get<string>('DB_PASSWORD', '123456'),
-          database: configService.get<string>('DB_DATABASE') || configService.get<string>('DB_NAME', 'inventory_db'),
-          entities: [InventoryItem, InventoryDetail, InventoryImportHistory, InventoryExportHistory, User],
+          url: configService.get<string>('DATABASE_URL'),
+          entities: [
+            InventoryItem,
+            InventoryDetail,
+            InventoryImportHistory,
+            InventoryExportHistory,
+            User,
+          ],
           synchronize: !isProduction, // Tắt synchronize trong production
           ssl: isProduction ? { rejectUnauthorized: false } : false,
           logging: !isProduction,
