@@ -1,0 +1,55 @@
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { InventoryModule } from './inventory/inventory.module';
+import { AuthModule } from './auth/auth.module';
+import { BackupModule } from './backup/backup.module';
+import { InventoryItem } from './inventory/inventory.entity';
+import { InventoryImportHistory } from './inventory/inventory-import-history.entity';
+import { InventoryExportHistory } from './inventory/inventory-export-history.entity';
+import { User } from './auth/user.entity';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { InventoryDetail } from './inventory/inventory-detail.entity';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    ScheduleModule.forRoot(),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: Number(configService.get<string>('DB_PORT', '5432')),
+          username: configService.get<string>('DB_USERNAME', 'postgres'),
+          password: configService.get<string>('DB_PASSWORD', '123456'),
+          database: configService.get<string>('DB_DATABASE') || configService.get<string>('DB_NAME', 'inventory_db'),
+          entities: [InventoryItem, InventoryDetail, InventoryImportHistory, InventoryExportHistory, User],
+          synchronize: !isProduction, // Tắt synchronize trong production
+          ssl: isProduction ? { rejectUnauthorized: false } : false,
+          logging: !isProduction,
+        };
+      },
+    }),
+    InventoryModule,
+    AuthModule,
+    BackupModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
+})
+export class AppModule {}
