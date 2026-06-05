@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
+import { Roles } from '../auth/roles.decorator';
 import { InventoryExportHistoryService } from './inventory-export-history.service';
 
 @Controller('inventory/export-history')
+@Roles('warehouse')
 export class InventoryExportHistoryController {
   constructor(private readonly service: InventoryExportHistoryService) {}
 

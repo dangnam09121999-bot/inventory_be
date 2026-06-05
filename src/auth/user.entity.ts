@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export type UserRole = 'warehouse' | 'viewer';
+
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -16,6 +18,12 @@ export class User {
 
   @Column({ type: 'varchar', length: 255 })
   password: string;
+
+  @Column({ type: 'varchar', length: 20, default: 'viewer' })
+  role: UserRole;
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

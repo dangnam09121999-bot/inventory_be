@@ -8,11 +8,13 @@ import { AppService } from './app.service';
 import { InventoryModule } from './inventory/inventory.module';
 import { AuthModule } from './auth/auth.module';
 import { BackupModule } from './backup/backup.module';
+import { UsersModule } from './users/users.module';
 import { InventoryItem } from './inventory/inventory.entity';
 import { InventoryImportHistory } from './inventory/inventory-import-history.entity';
 import { InventoryExportHistory } from './inventory/inventory-export-history.entity';
 import { User } from './auth/user.entity';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { RolesGuard } from './auth/roles.guard';
 import { InventoryDetail } from './inventory/inventory-detail.entity';
 
 @Module({
@@ -45,6 +47,7 @@ import { InventoryDetail } from './inventory/inventory-detail.entity';
     InventoryModule,
     AuthModule,
     BackupModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [
@@ -52,6 +55,10 @@ import { InventoryDetail } from './inventory/inventory-detail.entity';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

@@ -122,6 +122,7 @@ export class InventoryService {
   createDetail(
     itemId: number,
     payload: CreateInventoryDetailDto,
+    actor?: { id?: string; username?: string },
   ): Observable<InventoryDetail> {
     return from(
       this.inventoryRepository.findOne({ where: { id: itemId } }),
@@ -152,6 +153,8 @@ export class InventoryService {
               quantity: savedDetail.quantity,
               receivedAt: savedDetail.receivedAt,
               notes: savedDetail.notes,
+              performedBy: actor?.username,
+              performedById: actor?.id,
             });
             return from(this.importHistoryRepository.save(importHistory)).pipe(
               map(() => savedDetail),
@@ -196,7 +199,7 @@ export class InventoryService {
     );
   }
 
-  exportDetail(detailId: number, quantity: number, notes?: string): Observable<InventoryDetail> {
+  exportDetail(detailId: number, quantity: number, notes?: string, actor?: { id?: string; username?: string }): Observable<InventoryDetail> {
     return from(
       this.detailRepository.findOne({
         where: { id: detailId },
@@ -228,6 +231,8 @@ export class InventoryService {
               expiredAt: item.expiredAt,
               exportedAt: new Date(),
               notes: notes || undefined,
+              performedBy: actor?.username,
+              performedById: actor?.id,
             });
             return from(this.exportHistoryRepository.save(exportHistory)).pipe(
               map(() => item),
@@ -238,7 +243,7 @@ export class InventoryService {
     );
   }
 
-  exportStock(id: number, quantity: number, notes?: string): Observable<InventoryDetail> {
+  exportStock(id: number, quantity: number, notes?: string, actor?: { id?: string; username?: string }): Observable<InventoryDetail> {
     return from(
       this.detailRepository.findOne({
         where: { id },
@@ -273,6 +278,8 @@ export class InventoryService {
               expiredAt: item.expiredAt,
               exportedAt: new Date(),
               notes: notes || undefined,
+              performedBy: actor?.username,
+              performedById: actor?.id,
             });
             return from(this.exportHistoryRepository.save(exportHistory)).pipe(
               map(() => item),
@@ -311,10 +318,11 @@ export class InventoryService {
           totalItems: items.length,
           totalQuantity,
           expiredLots: items.filter((i) =>
-            i.details.some((d) => toDate(d.expiredAt) < now),
+            i.details.some((d) => d.quantity > 0 && toDate(d.expiredAt) < now),
           ).length,
           expiringSoonLots: items.filter((i) =>
             i.details.some((d) => {
+              if (d.quantity <= 0) return false;
               const exp = toDate(d.expiredAt);
               return exp >= now && exp <= next30Days;
             }),
@@ -338,6 +346,7 @@ export class InventoryService {
         const result: Array<{ id: number; name: string; detailId: number; lotCode: string; expiredAt: Date }> = [];
         items.forEach((item) => {
           item.details.forEach((detail) => {
+            if (detail.quantity <= 0) return;
             const exp = toDate(detail.expiredAt);
             if (exp >= now && exp <= next30Days) {
               result.push({
@@ -367,6 +376,7 @@ export class InventoryService {
         const result: Array<{ id: number; name: string; detailId: number; lotCode: string; expiredAt: Date }> = [];
         items.forEach((item) => {
           item.details.forEach((detail) => {
+            if (detail.quantity <= 0) return;
             if (toDate(detail.expiredAt) < now) {
               result.push({
                 id: item.id,

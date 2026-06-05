@@ -44,6 +44,12 @@ export class InventoryImportHistory {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  performedBy?: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  performedById?: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 
