@@ -38,6 +38,8 @@ import { InventoryDetail } from './inventory/inventory-detail.entity';
             InventoryExportHistory,
             User,
           ],
+          migrations: [__dirname + '/migrations/*{.ts,.js}'],
+          migrationsRun: true,
           synchronize: !isProduction, // Tắt synchronize trong production
           ssl: isProduction ? { rejectUnauthorized: false } : false,
           logging: !isProduction,
